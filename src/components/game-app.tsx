@@ -17,11 +17,11 @@ import { GameEngine } from "@/game/engine";
 import { hitCell, hitWorld, render, resizeCanvas } from "@/game/render";
 import { isMuted, preloadAssets, resumeAudio, sfx, toggleMute, unlockAudio } from "@/game/audio";
 import {
-  AWAKEN_HINT,
   axeFrenzyOn,
   barracksCap,
   CHAPTERS,
   DAMAGE_LABEL,
+  displayStar,
   DMG_UP,
   ENDLESS_ID,
   enemySkin,
@@ -379,7 +379,7 @@ function SidePanel({ snap, engine }: { snap: HudSnap; engine: GameEngine }) {
                 {t ? (
                   <span className="flex h-full flex-col items-center justify-center gap-0.5">
                     <span style={{ color: typeColor(t.type) }}>{TOWERS[t.type].name}</span>
-                    <span className="text-subtle">{t.star}★</span>
+                    <span className="text-subtle">{displayStar(t.star)}★</span>
                   </span>
                 ) : null}
               </button>
@@ -404,9 +404,13 @@ function SidePanel({ snap, engine }: { snap: HudSnap; engine: GameEngine }) {
                 className="flex h-12 items-center justify-between rounded-full bg-surface-2 px-3 text-sm"
               >
                 <span>
-                  {TOWERS[m.type].name} {m.star}★ ×{m.count}
+                  {TOWERS[m.type].name} {displayStar(m.star)}★ ×{m.count}
                 </span>
-                <span className="text-accent">to {m.star + 1}★</span>
+                <span className="text-accent">
+                  {displayStar(m.star + 1) > displayStar(m.star)
+                    ? `to ${displayStar(m.star + 1)}★`
+                    : "Merge"}
+                </span>
               </button>
             ))}
           </div>
@@ -516,7 +520,7 @@ function Inspector({
       <div className="flex items-start justify-between gap-2">
         <div>
           <div className="text-base font-medium">
-            {def.name} · {tower.star}★
+            {def.name} · {displayStar(tower.star)}★
           </div>
           <div className="text-sm text-muted">
             {DAMAGE_LABEL[def.damageType]} · {TYPE_HINT[tower.type]}
@@ -524,10 +528,9 @@ function Inspector({
         </div>
       </div>
       <p className="mt-2 text-sm leading-relaxed text-subtle">{def.desc}</p>
-      {tower.star >= 6 && (
-        <p className="mt-1.5 text-sm leading-relaxed text-good">{AWAKEN_HINT[tower.type]}</p>
+      {engine.phase === "combat" && axeFrenzyOn(tower) && (
+        <p className="mt-1 text-sm text-warn">Frenzy · 5× attack speed</p>
       )}
-      {axeFrenzyOn(tower) && <p className="mt-1 text-sm text-warn">Frenzy · 5× attack speed</p>}
       <div className="mt-2 grid grid-cols-2 gap-1.5 text-sm">
         <div className="rounded-2xl border border-border bg-surface p-2.5">
           <div className="text-xs text-subtle">

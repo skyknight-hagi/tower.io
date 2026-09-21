@@ -1,4 +1,4 @@
-import { axeConeHalf, axeFrenzyOn, COLS, DAMAGE_LABEL, enemySkin, ROWS, STAR_RANGE, TOWERS, typeMatchup } from "./config";
+import { axeConeHalf, axeFrenzyOn, COLS, DAMAGE_LABEL, displayStar, enemySkin, ROWS, STAR_RANGE, TOWERS, typeMatchup } from "./config";
 import type { GameEngine } from "./engine";
 import { grid, hash2, PATH_EDGE, PATH_FILL, WAYPOINTS } from "./map";
 import type { Ally, Blast, Enemy, Particle, Projectile, Slash, Tower, TowerType } from "./types";
@@ -379,7 +379,7 @@ function drawTower(ctx: CanvasRenderingContext2D, t: Tower, cell: number, select
   drawTowerGlyph(ctx, t.type, s, axeFrenzyOn(t) ? "#e8c4a0" : col);
   ctx.restore();
 
-  drawStars(ctx, x, y - s * 1.15, t.star, cell);
+  drawStars(ctx, x, y - s * 1.15, displayStar(t.star), cell);
 }
 
 function drawTowerGlyph(ctx: CanvasRenderingContext2D, type: TowerType, s: number, col: string) {
