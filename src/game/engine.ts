@@ -133,6 +133,8 @@ export class GameEngine {
   inspectAcc = 0;
   hoverCol = -1;
   hoverRow = -1;
+  dragId: number | null = null;
+  private autoMerging = false;
   trauma = 0;
   acc = 0;
   spawnQueue: { type: Enemy["type"]; at: number }[] = [];
@@ -179,6 +181,7 @@ export class GameEngine {
   openChapters() {
     this.screen = "chapters";
     this.shopPrompt = false;
+    this.dragId = null;
     this.bump();
   }
 
@@ -215,6 +218,7 @@ export class GameEngine {
     this.selectedInv = null;
     this.selectedField = null;
     this.inspectedEnemyId = null;
+    this.dragId = null;
     this.shopLocked = false;
     this.slotUp = 0;
     this.occupied.clear();
@@ -260,6 +264,7 @@ export class GameEngine {
   pause() {
     if (this.screen === "playing") {
       this.screen = "paused";
+      this.dragId = null;
       this.bump();
     }
   }
@@ -1409,6 +1414,7 @@ export class GameEngine {
     this.selectedField = null;
     this.inspectedEnemyId = null;
     sfx("buy");
+    this.promoteFives();
     this.bump();
     return true;
   }
@@ -1455,14 +1461,19 @@ export class GameEngine {
     return best;
   }
 
+  canDrop(col: number, row: number, ignoreId: number | null = null) {
+    if (!isBuildable(col, row)) return false;
+    const occ = this.towers.find((t) => t.placed && t.col === col && t.row === row);
+    return !occ || occ.id === ignoreId;
+  }
+
   tryPlace(col: number, row: number) {
     if (this.selectedInv == null) return false;
-    if (!isBuildable(col, row)) {
+    if (!this.canDrop(col, row)) {
       sfx("deny");
       return false;
     }
-    const key = `${col},${row}`;
-    if (this.occupied.has(key) || this.towers.filter((t) => t.placed).length >= slotCap(this.slotUp)) {
+    if (this.towers.filter((t) => t.placed).length >= slotCap(this.slotUp)) {
       sfx("deny");
       return false;
     }
@@ -1471,13 +1482,43 @@ export class GameEngine {
     t.placed = true;
     t.col = col;
     t.row = row;
-    this.occupied.add(key);
+    this.occupied.add(`${col},${row}`);
     this.selectedInv = null;
     this.selectedField = t.id;
     this.burst(col + 0.5, row + 0.5, "#d8d4cc", 6);
     sfx("place");
     this.bump();
     return true;
+  }
+
+  tryMove(id: number, col: number, row: number) {
+    const t = this.towers.find((x) => x.id === id);
+    if (!t?.placed) return false;
+    if (t.col === col && t.row === row) {
+      this.selectedField = t.id;
+      this.selectedInv = null;
+      this.bump();
+      return true;
+    }
+    if (!this.canDrop(col, row, t.id)) {
+      sfx("deny");
+      return false;
+    }
+    this.occupied.delete(`${t.col},${t.row}`);
+    t.col = col;
+    t.row = row;
+    this.occupied.add(`${col},${row}`);
+    this.selectedField = t.id;
+    this.selectedInv = null;
+    this.inspectedEnemyId = null;
+    this.burst(col + 0.5, row + 0.5, "#d8d4cc", 6);
+    sfx("place");
+    this.bump();
+    return true;
+  }
+
+  setDrag(id: number | null) {
+    this.dragId = id;
   }
 
   expandSlots() {
@@ -1564,10 +1605,19 @@ export class GameEngine {
     for (const [k, count] of map) {
       const [type, starStr] = k.split(":");
       const star = Number(starStr) as Star;
+      if (star >= 5) continue;
       if (count < mergeNeed(star)) continue;
       out.push({ type: type as TowerType, star, count });
     }
     return out;
+  }
+
+  private promoteFives() {
+    for (const type of TOWER_ORDER) {
+      while (this.towers.filter((t) => t.type === type && t.star === 5).length >= mergeNeed(5)) {
+        if (!this.merge(type, 5)) break;
+      }
+    }
   }
 
   merge(type: TowerType, star: Star) {
@@ -1628,6 +1678,11 @@ export class GameEngine {
     if (next.placed) this.burst(next.col + 0.5, next.row + 0.5, "#e8e4dc", 14);
     sfx("merge");
     this.trauma = clamp(this.trauma + 0.06, 0, 1);
+    if (!this.autoMerging) {
+      this.autoMerging = true;
+      this.promoteFives();
+      this.autoMerging = false;
+    }
     this.bump();
     return true;
   }
@@ -1705,6 +1760,11 @@ export class GameEngine {
 
   fieldTower(id: number | null) {
     return this.towers.find((t) => t.id === id) ?? null;
+  }
+
+  dragView(t: Tower): Tower {
+    if (this.dragId !== t.id || this.hoverCol < 0 || this.hoverRow < 0) return t;
+    return { ...t, col: this.hoverCol, row: this.hoverRow };
   }
 }
 

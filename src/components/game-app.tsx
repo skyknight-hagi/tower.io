@@ -1,4 +1,4 @@
-import { useEffect, useRef, useSyncExternalStore, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type PointerEvent as ReactPointerEvent } from "react";
 import {
   Coins,
   Heart,
@@ -45,8 +45,18 @@ function getEngine() {
   return engineSingleton;
 }
 
+const DRAG_PX = 10;
+
 export function GameApp() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const dragRef = useRef<{
+    pointerId: number;
+    x: number;
+    y: number;
+    towerId: number | null;
+    moved: boolean;
+  } | null>(null);
+  const [dragging, setDragging] = useState(false);
   const engine = getEngine();
   const version = useSyncExternalStore(
     (cb) => engine.on(cb),
@@ -127,22 +137,75 @@ export function GameApp() {
     };
   }, [engine]);
 
-  function onPointer(e: ReactPointerEvent<HTMLCanvasElement>) {
+  function onPointerDown(e: ReactPointerEvent<HTMLCanvasElement>) {
     const canvas = canvasRef.current;
-    if (!canvas || engine.screen !== "playing") return;
-    const world = hitWorld(canvas, e.clientX, e.clientY);
-    if (world && engine.selectedInv == null) {
+    if (!canvas || engine.screen !== "playing" || engine.shopPrompt) return;
+    canvas.setPointerCapture(e.pointerId);
+    const cell = hitCell(canvas, e.clientX, e.clientY);
+    const occ = cell
+      ? engine.towers.find((t) => t.placed && t.col === cell.col && t.row === cell.row)
+      : undefined;
+    dragRef.current = {
+      pointerId: e.pointerId,
+      x: e.clientX,
+      y: e.clientY,
+      towerId: occ?.id ?? null,
+      moved: false,
+    };
+    setDragging(false);
+  }
+
+  function onPointerMove(e: ReactPointerEvent<HTMLCanvasElement>) {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const cell = hitCell(canvas, e.clientX, e.clientY);
+    if (cell) engine.setHover(cell.col, cell.row);
+    else engine.setHover(-1, -1);
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== e.pointerId) return;
+    const dist = Math.hypot(e.clientX - drag.x, e.clientY - drag.y);
+    if (!drag.moved && dist >= DRAG_PX) {
+      drag.moved = true;
+      if (drag.towerId != null) {
+        engine.setDrag(drag.towerId);
+        engine.selectField(drag.towerId);
+        setDragging(true);
+      }
+    }
+  }
+
+  function endPointer(e: ReactPointerEvent<HTMLCanvasElement>) {
+    const canvas = canvasRef.current;
+    const drag = dragRef.current;
+    if (canvas && drag && canvas.hasPointerCapture(e.pointerId)) {
+      canvas.releasePointerCapture(e.pointerId);
+    }
+    if (!drag || drag.pointerId !== e.pointerId) return;
+    dragRef.current = null;
+    engine.setDrag(null);
+    setDragging(false);
+    if (engine.screen !== "playing" || engine.shopPrompt) return;
+    const cell = canvas ? hitCell(canvas, e.clientX, e.clientY) : null;
+    if (drag.moved && drag.towerId != null) {
+      if (cell) engine.tryMove(drag.towerId, cell.col, cell.row);
+      else sfx("deny");
+      return;
+    }
+    if (drag.moved) return;
+    const world = canvas ? hitWorld(canvas, e.clientX, e.clientY) : null;
+    if (world && engine.selectedInv == null && drag.towerId == null) {
       const enemy = engine.enemyAt(world.x, world.y);
       if (enemy) {
         engine.inspectEnemy(enemy.id);
         return;
       }
     }
-    const cell = hitCell(canvas, e.clientX, e.clientY);
-    if (!cell) return;
-    const occ = engine.towers.find((t) => t.placed && t.col === cell.col && t.row === cell.row);
-    if (occ) {
-      engine.selectField(occ.id);
+    if (drag.towerId != null) {
+      engine.selectField(drag.towerId);
+      return;
+    }
+    if (!cell) {
+      engine.selectField(null);
       return;
     }
     if (engine.selectedInv != null) {
@@ -152,14 +215,6 @@ export function GameApp() {
     engine.selectField(null);
   }
 
-  function onMove(e: ReactPointerEvent<HTMLCanvasElement>) {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const cell = hitCell(canvas, e.clientX, e.clientY);
-    if (cell) engine.setHover(cell.col, cell.row);
-    else engine.setHover(-1, -1);
-  }
-
   return (
     <div className="relative flex h-dvh max-h-dvh flex-col overflow-hidden bg-bg text-fg">
       <Hud snap={snap} engine={engine} />
@@ -167,13 +222,15 @@ export function GameApp() {
         <div className="relative min-h-[220px] flex-1 touch-none">
           <canvas
             ref={canvasRef}
-            className="block h-full w-full"
-            onPointerDown={onPointer}
-            onPointerMove={onMove}
+            className={cn("block h-full w-full", dragging ? "cursor-grabbing" : "cursor-grab")}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={endPointer}
+            onPointerCancel={endPointer}
           />
-          {snap.screen === "playing" && snap.selectedInv != null && (
+          {snap.screen === "playing" && (snap.selectedInv != null || dragging) && (
             <p className="pointer-events-none absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full bg-surface/90 px-4 py-2 text-sm text-muted">
-              Tap a clear tile off the path
+              Drop on a clear tile off the path
             </p>
           )}
         </div>
@@ -405,7 +462,7 @@ function SidePanel({ snap, engine }: { snap: HudSnap; engine: GameEngine }) {
                 <span>
                   {TOWERS[m.type].name} {m.star}★ ×{m.count}
                 </span>
-                <span className="text-accent">{m.star >= 5 ? "Merge" : `to ${m.star + 1}★`}</span>
+                <span className="text-accent">to {m.star + 1}★</span>
               </button>
             ))}
           </div>

@@ -62,23 +62,27 @@ export function render(ctx: CanvasRenderingContext2D, engine: GameEngine) {
   drawDecor(ctx, cell);
   drawSpawnBase(ctx, cell);
 
-  if (engine.selectedInv != null) {
+  if (engine.selectedInv != null || engine.dragId != null) {
     drawHover(ctx, engine, cell);
   }
 
   const sel = engine.fieldTower(engine.selectedField);
-  if (sel?.placed) drawRange(ctx, sel, cell);
+  if (sel?.placed && sel.id !== engine.dragId) drawRange(ctx, sel, cell);
   const ghost = engine.towers.find((x) => x.id === engine.selectedInv);
   if (ghost && engine.hoverCol >= 0) {
     const g = { ...ghost, placed: true, col: engine.hoverCol, row: engine.hoverRow };
     drawRange(ctx, g, cell);
   }
+  const dragging = engine.towers.find((x) => x.id === engine.dragId);
+  if (dragging?.placed && engine.hoverCol >= 0) {
+    drawRange(ctx, { ...dragging, col: engine.hoverCol, row: engine.hoverRow }, cell);
+  }
 
   for (const tw of engine.towers) {
-    if (tw.placed && tw.type === "shaman") drawShamanField(ctx, tw, cell);
+    if (tw.placed && tw.type === "shaman") drawShamanField(ctx, engine.dragView(tw), cell);
   }
   for (const tw of engine.towers) {
-    if (tw.placed) drawTower(ctx, tw, cell, tw.id === engine.selectedField);
+    if (tw.placed) drawTower(ctx, engine.dragView(tw), cell, tw.id === engine.selectedField);
   }
   for (const e of engine.enemies) {
     if (e.alive) drawEnemy(ctx, e, cell, e.id === engine.inspectedEnemyId, engine.skinChapter());
@@ -206,7 +210,7 @@ function drawSpawnBase(ctx: CanvasRenderingContext2D, cell: number) {
 function drawHover(ctx: CanvasRenderingContext2D, engine: GameEngine, cell: number) {
   const { hoverCol: c, hoverRow: r } = engine;
   if (c < 0 || r < 0) return;
-  const ok = grid[r]?.[c] === "build" && !engine.occupied.has(`${c},${r}`);
+  const ok = engine.canDrop(c, r, engine.dragId);
   ctx.fillStyle = ok ? "rgba(216,212,204,0.16)" : "rgba(196,92,74,0.2)";
   ctx.fillRect(wx(c, cell), wy(r, cell), cell, cell);
   ctx.strokeStyle = ok ? "rgba(216,212,204,0.55)" : "rgba(196,92,74,0.7)";
