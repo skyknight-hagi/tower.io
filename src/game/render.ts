@@ -1,4 +1,4 @@
-import { axeConeHalf, COLS, DAMAGE_LABEL, enemySkin, ROWS, STAR_RANGE, TOWERS, typeMatchup } from "./config";
+import { axeConeHalf, axeFrenzyOn, COLS, DAMAGE_LABEL, enemySkin, ROWS, STAR_RANGE, TOWERS, typeMatchup } from "./config";
 import type { GameEngine } from "./engine";
 import { grid, hash2, PATH_EDGE, PATH_FILL, WAYPOINTS } from "./map";
 import type { Ally, Blast, Enemy, Particle, Projectile, Slash, Tower, TowerType } from "./types";
@@ -345,6 +345,14 @@ function drawTower(ctx: CanvasRenderingContext2D, t: Tower, cell: number, select
     ctx.lineWidth = 2;
     ctx.stroke();
   }
+  if (axeFrenzyOn(t)) {
+    const u = 0.5 + 0.5 * Math.sin(t.cycleT * 14);
+    ctx.beginPath();
+    ctx.arc(x, y, s * (1.4 + u * 0.28), 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(232,180,120,${0.4 + u * 0.35})`;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
   if (t.type === "mortar" && t.pulse < 0.22) {
     const u = t.pulse / 0.22;
     ctx.beginPath();
@@ -368,7 +376,7 @@ function drawTower(ctx: CanvasRenderingContext2D, t: Tower, cell: number, select
   ctx.translate(x, y);
   const swing = t.type === "axeman" && t.pulse < 0.28 ? Math.sin((t.pulse / 0.28) * Math.PI) * 0.7 : 0;
   ctx.rotate(t.angle + swing);
-  drawTowerGlyph(ctx, t.type, s, col);
+  drawTowerGlyph(ctx, t.type, s, axeFrenzyOn(t) ? "#e8c4a0" : col);
   ctx.restore();
 
   drawStars(ctx, x, y - s * 1.15, t.star, cell);

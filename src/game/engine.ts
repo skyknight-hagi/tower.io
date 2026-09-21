@@ -1,5 +1,8 @@
 import {
   axeConeHalf,
+  axeFrenzyOn,
+  AXE_FRENZY_PERIOD,
+  AXE_FRENZY_RATE,
   atkRateScale,
   atkScale,
   barracksCap,
@@ -17,6 +20,7 @@ import {
   healCost,
   hitsAir,
   hpScale,
+  ignoresStun,
   investedCost,
   loadProgress,
   mergeNeed,
@@ -370,8 +374,8 @@ export class GameEngine {
       const dx = t.col + 0.5 - e.x;
       const dy = t.row + 0.5 - e.y;
       if (dx * dx + dy * dy <= r2) {
-        t.stunT = 2;
         n += 1;
+        if (!ignoresStun(t)) t.stunT = 2;
       }
     }
     if (n) {
@@ -651,13 +655,31 @@ export class GameEngine {
     }
   }
 
+  private tickAxeCycle(t: Tower, dt: number) {
+    if (t.type !== "axeman" || t.star < 6) return;
+    const before = axeFrenzyOn(t);
+    t.cycleT += dt;
+    if (t.cycleT >= AXE_FRENZY_PERIOD) t.cycleT -= AXE_FRENZY_PERIOD;
+    const after = axeFrenzyOn(t);
+    if (!before && after) this.axeFrenzyBurst(t);
+    else if (before && !after) this.bump();
+  }
+
+  private axeFrenzyBurst(t: Tower) {
+    sfx("frenzy");
+    this.trauma = clamp(this.trauma + 0.1, 0, 1);
+    this.burst(t.col + 0.5, t.row + 0.5, "#e8c4a0", 14, "spark");
+    this.bump();
+  }
+
   private tickTowers(dt: number) {
     const alive = this.enemies.filter((e) => e.alive);
     for (const t of this.towers) {
       if (!t.placed) continue;
+      this.tickAxeCycle(t, dt);
       if (t.stunT > 0) {
         t.stunT -= dt;
-        continue;
+        if (!ignoresStun(t)) continue;
       }
       if (t.type === "vault") {
         this.tickVault(t, dt);
@@ -730,11 +752,12 @@ export class GameEngine {
       }
 
       if (t.cooldown > 0) continue;
-      const rate =
+      let rate =
         def.fireRate *
         STAR_RATE[t.star]! *
         RATE_UP[t.rateUp]! *
         (t.type === "shaman" ? 1 : this.rateBuffAt(tx, ty));
+      if (axeFrenzyOn(t)) rate *= AXE_FRENZY_RATE;
       const cd = 1 / Math.max(0.05, rate);
       let target: Enemy | null = null;
       let bestDist = -1;
@@ -1293,6 +1316,9 @@ export class GameEngine {
     }
     this.spawnQueue.sort((a, b) => a.at - b.at);
     sfx("wave");
+    for (const t of this.towers) {
+      if (t.placed && axeFrenzyOn(t)) this.axeFrenzyBurst(t);
+    }
     this.bump();
   }
 
@@ -1376,6 +1402,7 @@ export class GameEngine {
       angle: -Math.PI / 2,
       pulse: 0,
       stunT: 0,
+      cycleT: 0,
     };
     this.towers.push(t);
     this.selectedInv = t.id;
@@ -1575,9 +1602,11 @@ export class GameEngine {
       angle: field?.angle ?? -Math.PI / 2,
       pulse: 0,
       stunT: 0,
+      cycleT: 0,
     };
     if (next.placed) this.occupied.add(`${next.col},${next.row}`);
     this.towers.push(next);
+    if (next.placed && this.phase === "combat" && axeFrenzyOn(next)) this.axeFrenzyBurst(next);
     if (type === "barracks") {
       const kept: Ally[] = [];
       for (const a of this.allies) {

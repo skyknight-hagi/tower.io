@@ -194,6 +194,12 @@ export function sfx(name: string) {
       tone(90 * rate, 0.12, "sine", 0.2, 0.004, 0.45);
       tone(240 * rate, 0.07, "square", 0.08, 0.002, 0.6);
       break;
+    case "frenzy":
+      burst(0.16, 0.22, 180, 900);
+      tone(110 * rate, 0.16, "sine", 0.22, 0.006, 0.4);
+      tone(220 * rate, 0.12, "triangle", 0.12, 0.01, 0.7);
+      tone(330 * rate, 0.1, "square", 0.07, 0.02, 0.55);
+      break;
     case "laser":
       tone(1680 * rate, 0.07, "sawtooth", 0.06, 0.002, 0.45);
       tone(880 * rate, 0.05, "square", 0.04);

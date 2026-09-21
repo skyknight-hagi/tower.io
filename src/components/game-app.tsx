@@ -17,6 +17,8 @@ import { GameEngine } from "@/game/engine";
 import { hitCell, hitWorld, render, resizeCanvas } from "@/game/render";
 import { isMuted, preloadAssets, resumeAudio, sfx, toggleMute, unlockAudio } from "@/game/audio";
 import {
+  AWAKEN_HINT,
+  axeFrenzyOn,
   barracksCap,
   CHAPTERS,
   DAMAGE_LABEL,
@@ -522,6 +524,10 @@ function Inspector({
         </div>
       </div>
       <p className="mt-2 text-sm leading-relaxed text-subtle">{def.desc}</p>
+      {tower.star >= 6 && (
+        <p className="mt-1.5 text-sm leading-relaxed text-good">{AWAKEN_HINT[tower.type]}</p>
+      )}
+      {axeFrenzyOn(tower) && <p className="mt-1 text-sm text-warn">Frenzy · 5× attack speed</p>}
       <div className="mt-2 grid grid-cols-2 gap-1.5 text-sm">
         <div className="rounded-2xl border border-border bg-surface p-2.5">
           <div className="text-xs text-subtle">

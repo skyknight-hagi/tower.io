@@ -20,6 +20,9 @@ export const UNLOCK_KEY = "seongru-unlock";
 export const ENDLESS_ID = 4;
 export const HEAL_BASE = 45;
 export const HEAL_STEP = 16;
+export const AXE_FRENZY_PERIOD = 10;
+export const AXE_FRENZY_DURATION = 2;
+export const AXE_FRENZY_RATE = 5;
 
 export const STAR_DMG = [1, 1, 1.4, 1.85, 2.35, 3.0, 4.0];
 export const STAR_RANGE = [1, 1, 1.06, 1.12, 1.18, 1.24, 1.32];
@@ -236,7 +239,7 @@ export const TYPE_HINT: Record<TowerType, string> = {
 export const AWAKEN_HINT: Record<TowerType, string> = {
   crossbow: "Arrows hang over foes, then execute after 3s.",
   laser: "Chains 500 through the pack.",
-  axeman: "Awakened cleave.",
+  axeman: "Ignores stun. Every 10s, 2s of 5× attack speed.",
   mortar: "Map-wide blast. 20% max HP.",
   shaman: "Foes walk 3s, then freeze.",
   arcane: "Meteors rain with no wait.",
@@ -437,6 +440,14 @@ export function isAwakened(star: number): boolean {
   return star >= 6;
 }
 
+export function ignoresStun(t: Tower): boolean {
+  return t.type === "axeman" && t.star >= 6;
+}
+
+export function axeFrenzyOn(t: Tower): boolean {
+  return ignoresStun(t) && t.cycleT % AXE_FRENZY_PERIOD < AXE_FRENZY_DURATION;
+}
+
 export function mergeNeed(star: number): number {
   return star >= 5 ? MERGE_NEED_FIVE : MERGE_NEED;
 }
@@ -462,7 +473,8 @@ export function towerRange(t: Tower): number {
 }
 
 export function towerRate(t: Tower): number {
-  return TOWERS[t.type].fireRate * STAR_RATE[t.star] * RATE_UP[t.rateUp];
+  const n = TOWERS[t.type].fireRate * STAR_RATE[t.star] * RATE_UP[t.rateUp];
+  return axeFrenzyOn(t) ? n * AXE_FRENZY_RATE : n;
 }
 
 export function vaultPayout(t: Tower): number {

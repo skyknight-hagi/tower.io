@@ -58,6 +58,7 @@ export type Tower = {
   angle: number;
   pulse: number;
   stunT: number;
+  cycleT: number;
 };
 
 export type Enemy = {
