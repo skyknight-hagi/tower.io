@@ -1461,24 +1461,46 @@ export class GameEngine {
     return best;
   }
 
+  towerAt(col: number, row: number) {
+    return this.towers.find((t) => t.placed && t.col === col && t.row === row) ?? null;
+  }
+
   canDrop(col: number, row: number, ignoreId: number | null = null) {
     if (!isBuildable(col, row)) return false;
-    const occ = this.towers.find((t) => t.placed && t.col === col && t.row === row);
+    const occ = this.towerAt(col, row);
     return !occ || occ.id === ignoreId;
+  }
+
+  canStack(fromId: number, col: number, row: number) {
+    const a = this.towers.find((t) => t.id === fromId);
+    const b = this.towerAt(col, row);
+    if (!a || !b || a.id === b.id) return false;
+    if (a.type !== b.type || a.star !== b.star || a.star >= 6) return false;
+    const need = mergeNeed(a.star);
+    const count = this.towers.filter((t) => t.type === a.type && t.star === a.star).length;
+    return count >= need;
+  }
+
+  dropKind(col: number, row: number, fromId: number | null): "empty" | "merge" | "blocked" {
+    if (fromId != null && this.canStack(fromId, col, row)) return "merge";
+    if (this.canDrop(col, row, fromId)) return "empty";
+    return "blocked";
   }
 
   tryPlace(col: number, row: number) {
     if (this.selectedInv == null) return false;
+    const t = this.towers.find((x) => x.id === this.selectedInv);
+    if (!t || t.placed) return false;
+    const onto = this.towerAt(col, row);
+    if (onto) return this.tryStack(t.id, onto.id);
     if (!this.canDrop(col, row)) {
       sfx("deny");
       return false;
     }
-    if (this.towers.filter((t) => t.placed).length >= slotCap(this.slotUp)) {
+    if (this.towers.filter((x) => x.placed).length >= slotCap(this.slotUp)) {
       sfx("deny");
       return false;
     }
-    const t = this.towers.find((x) => x.id === this.selectedInv);
-    if (!t || t.placed) return false;
     t.placed = true;
     t.col = col;
     t.row = row;
@@ -1500,6 +1522,8 @@ export class GameEngine {
       this.bump();
       return true;
     }
+    const onto = this.towerAt(col, row);
+    if (onto && onto.id !== t.id) return this.tryStack(t.id, onto.id);
     if (!this.canDrop(col, row, t.id)) {
       sfx("deny");
       return false;
@@ -1515,6 +1539,32 @@ export class GameEngine {
     sfx("place");
     this.bump();
     return true;
+  }
+
+  tryStack(fromId: number, ontoId: number) {
+    const a = this.towers.find((t) => t.id === fromId);
+    const b = this.towers.find((t) => t.id === ontoId);
+    if (!a || !b || a.id === b.id) {
+      sfx("deny");
+      return false;
+    }
+    if (a.type !== b.type || a.star !== b.star || a.star >= 6) {
+      sfx("deny");
+      return false;
+    }
+    const need = mergeNeed(a.star);
+    const take = [a, b];
+    if (need > 2) {
+      const rest = this.towers
+        .filter((t) => t.type === a.type && t.star === a.star && t.id !== a.id && t.id !== b.id)
+        .sort((x, y) => Number(x.placed) - Number(y.placed));
+      if (rest.length < need - 2) {
+        sfx("deny");
+        return false;
+      }
+      take.push(...rest.slice(0, need - 2));
+    }
+    return this.commitMerge(take, b.placed ? b : a.placed ? a : undefined);
   }
 
   setDrag(id: number | null) {
@@ -1630,10 +1680,16 @@ export class GameEngine {
       sfx("deny");
       return false;
     }
-    const take = pool.slice(0, need);
+    return this.commitMerge(pool.slice(0, need));
+  }
+
+  private commitMerge(take: Tower[], keep?: Tower) {
+    if (take.length < 2) return false;
+    const type = take[0]!.type;
+    const star = take[0]!.star;
     const dmgUp = Math.max(...take.map((t) => t.dmgUp));
     const rateUp = Math.max(...take.map((t) => t.rateUp));
-    const field = take.find((t) => t.placed);
+    const field = keep?.placed ? keep : take.find((t) => t.placed);
     const ids = new Set(take.map((t) => t.id));
     for (const tw of take) {
       if (tw.placed) this.occupied.delete(`${tw.col},${tw.row}`);
@@ -1675,6 +1731,7 @@ export class GameEngine {
     }
     this.selectedField = next.placed ? next.id : null;
     this.selectedInv = next.placed ? null : next.id;
+    this.dragId = null;
     if (next.placed) this.burst(next.col + 0.5, next.row + 0.5, "#e8e4dc", 14);
     sfx("merge");
     this.trauma = clamp(this.trauma + 0.06, 0, 1);

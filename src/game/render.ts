@@ -210,10 +210,13 @@ function drawSpawnBase(ctx: CanvasRenderingContext2D, cell: number) {
 function drawHover(ctx: CanvasRenderingContext2D, engine: GameEngine, cell: number) {
   const { hoverCol: c, hoverRow: r } = engine;
   if (c < 0 || r < 0) return;
-  const ok = engine.canDrop(c, r, engine.dragId);
-  ctx.fillStyle = ok ? "rgba(216,212,204,0.16)" : "rgba(196,92,74,0.2)";
+  const fromId = engine.dragId ?? engine.selectedInv;
+  const kind = engine.dropKind(c, r, fromId);
+  const ok = kind !== "blocked";
+  const merge = kind === "merge";
+  ctx.fillStyle = merge ? "rgba(122,154,120,0.28)" : ok ? "rgba(216,212,204,0.16)" : "rgba(196,92,74,0.2)";
   ctx.fillRect(wx(c, cell), wy(r, cell), cell, cell);
-  ctx.strokeStyle = ok ? "rgba(216,212,204,0.55)" : "rgba(196,92,74,0.7)";
+  ctx.strokeStyle = merge ? "rgba(122,154,120,0.85)" : ok ? "rgba(216,212,204,0.55)" : "rgba(196,92,74,0.7)";
   ctx.lineWidth = 1.5;
   ctx.strokeRect(wx(c, cell) + 1, wy(r, cell) + 1, cell - 2, cell - 2);
 }

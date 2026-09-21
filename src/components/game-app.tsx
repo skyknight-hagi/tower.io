@@ -230,7 +230,7 @@ export function GameApp() {
           />
           {snap.screen === "playing" && (snap.selectedInv != null || dragging) && (
             <p className="pointer-events-none absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full bg-surface/90 px-4 py-2 text-sm text-muted">
-              Drop on a clear tile off the path
+              Drop on a matching tower to merge, or a clear tile
             </p>
           )}
         </div>
