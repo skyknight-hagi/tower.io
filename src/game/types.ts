@@ -227,7 +227,6 @@ export type HudSnap = {
   chapterName: string;
   chapters: ChapterInfo[];
   endless: boolean;
-  endlessUnlocked: boolean;
   loadProgress: number;
   loadLabel: string;
   enemiesAlive: number;

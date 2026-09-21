@@ -180,12 +180,7 @@ export class GameEngine {
 
   startGame(chapterId = this.chapter) {
     const endless = chapterId === ENDLESS_ID;
-    if (endless) {
-      if (this.cleared < CHAPTERS.length) {
-        sfx("deny");
-        return;
-      }
-    } else {
+    if (!endless) {
       if (chapterId < 0 || chapterId >= CHAPTERS.length) return;
       if (chapterId >= this.unlocked) {
         sfx("deny");
@@ -1658,7 +1653,6 @@ export class GameEngine {
         cleared: c.id < this.cleared,
       })),
       endless: this.endless,
-      endlessUnlocked: this.cleared >= CHAPTERS.length,
       loadProgress: this.loadProgress,
       loadLabel: this.loadLabel,
       enemiesAlive: this.enemies.filter((e) => e.alive).length,

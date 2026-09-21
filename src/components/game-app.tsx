@@ -658,7 +658,7 @@ function ScreenOverlay({ snap, engine }: { snap: HudSnap; engine: GameEngine }) 
           <p className="text-sm tracking-[0.18em] text-muted">TOWER DEFENSE</p>
           <h1 className="font-display mt-1 text-3xl leading-none sm:text-4xl">Rampart</h1>
           <p className="mt-1.5 text-base text-muted">
-            Each chapter is {WAVES_PER_CHAPTER} stages. Clear all four to unlock Endless.
+            Each chapter is {WAVES_PER_CHAPTER} stages. Endless Watch is open anytime.
           </p>
           <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
             {snap.chapters.map((ch) => (
@@ -675,28 +675,20 @@ function ScreenOverlay({ snap, engine }: { snap: HudSnap; engine: GameEngine }) 
           </div>
           <button
             type="button"
-            disabled={!snap.endlessUnlocked}
             onClick={() => {
               unlockAudio();
               sfx("click");
               engine.startGame(ENDLESS_ID);
             }}
-            className={cn(
-              "mt-2 flex min-h-16 w-full flex-col items-start rounded-3xl border p-3 text-left",
-              snap.endlessUnlocked ? "border-border bg-bg" : "border-border/70 bg-bg/50 opacity-50",
-            )}
+            className="mt-2 flex min-h-16 w-full flex-col items-start rounded-3xl border border-border bg-bg p-3 text-left"
           >
             <div className="flex w-full items-center justify-between gap-2">
               <span className="text-sm text-subtle">Endless</span>
-              {snap.endlessUnlocked ? (
-                <span className="text-sm text-good">Open</span>
-              ) : (
-                <Lock className="size-4 text-subtle" />
-              )}
+              <span className="text-sm text-good">Open</span>
             </div>
             <div className="mt-1 font-display text-2xl leading-none">Endless Watch</div>
             <div className="mt-1 text-sm text-muted">
-              {snap.endlessUnlocked ? "Foes grow in number and strength each stage." : "Clear every chapter to unlock."}
+              Foes grow in number and strength each stage.
             </div>
           </button>
           <TypeChart />
@@ -754,12 +746,12 @@ function ScreenOverlay({ snap, engine }: { snap: HudSnap; engine: GameEngine }) 
               ? `${snap.chapterName} · held ${snap.endless ? `${snap.wave} waves` : `${snap.totalWaves} stages`}.`
               : `${snap.chapterName} · out of lives on stage ${snap.wave}.`}
           </p>
-          {won && snap.endlessUnlocked && snap.chapter === 3 && (
-            <p className="mt-1 text-base text-good">Endless mode is unlocked.</p>
+          {won && snap.chapter === 3 && !snap.endless && (
+            <p className="mt-1 text-base text-good">Endless Watch is open anytime.</p>
           )}
           <p className="mt-1 text-base text-subtle">Gold left {snap.gold}</p>
           <div className="mt-5 flex flex-col gap-2">
-            {won && snap.endlessUnlocked && snap.chapter === 3 && (
+            {won && snap.chapter === 3 && !snap.endless && (
               <button
                 type="button"
                 className="h-14 w-full rounded-3xl bg-accent text-base font-medium text-accent-fg"
@@ -788,7 +780,7 @@ function ScreenOverlay({ snap, engine }: { snap: HudSnap; engine: GameEngine }) 
               className={cn(
                 "h-14 w-full rounded-3xl text-base font-medium",
                 (won && snap.chapter + 1 < snap.chapters.length && snap.chapters[snap.chapter + 1]?.unlocked) ||
-                  (won && snap.endlessUnlocked && snap.chapter === 3)
+                  (won && snap.chapter === 3 && !snap.endless)
                   ? "border border-border"
                   : "bg-accent text-accent-fg",
               )}
