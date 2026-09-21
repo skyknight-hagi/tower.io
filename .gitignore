@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+.node_modules.lock
+
+# Build / preview output
+dist/
+build/
+.output/
+.nitro/
+.vercel/
+.tanstack/
+*.local
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Logs and caches
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.cache/
+.turbo/
+
+# Grok local runtime (not app source)
+.grok/
+.project_id
+
+# Test / local QA dumps
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+screenshots/setup-*.png
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+.idea/
+.vscode/
+!.vscode/extensions.json
+
+# Coverage
+coverage/
