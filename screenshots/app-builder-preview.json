@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Rampart",
+      "hasCanvas": true,
+      "bodyTextLen": 325,
+      "bodyTextHash": "a25b9004ee715803afc38d79a592214ea822db4b50bfbbe4edd8cd9659160c46",
+      "bodyTextPrefix": "Rampart 20 Lives 170 Gold Prep Wave Next wave Footman 16 Start w",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Rampart",
+      "hasCanvas": true,
+      "bodyTextLen": 684,
+      "bodyTextHash": "5e8708a9ac6383275050ea03ba2c2e2eace52c8e639c1b90b1077f7ec951aca8",
+      "bodyTextPrefix": "Rampart 20 Lives 170 Gold Prep Wave Next wave Footman 16 Start w",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview.json"
+}

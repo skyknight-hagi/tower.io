@@ -1,0 +1,40 @@
+{
+  "url": "http://127.0.0.1:8081/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Rampart",
+      "hasCanvas": true,
+      "bodyTextLen": 313,
+      "bodyTextHash": "b420d07cbe35df84ff7a2ebc871291ac4b2822939a67bb2d8953894e6a6299f6",
+      "bodyTextPrefix": "Rampart 20 Lives 170 Gold Prep Wave Next wave Footman 16 Start w",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-prod.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Rampart",
+      "hasCanvas": true,
+      "bodyTextLen": 325,
+      "bodyTextHash": "a25b9004ee715803afc38d79a592214ea822db4b50bfbbe4edd8cd9659160c46",
+      "bodyTextPrefix": "Rampart 20 Lives 170 Gold Prep Wave Next wave Footman 16 Start w",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-prod-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview-prod.json",
+  "divergesFromBaseline": true,
+  "baselineReasons": [
+    "mobile: body text collapsed (684 -> 325 chars)"
+  ]
+}
