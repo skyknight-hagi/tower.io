@@ -5,8 +5,8 @@
   --color-surface: #16171c;
   --color-surface-2: #1d1f26;
   --color-fg: #e8e4dc;
-  --color-muted: #9a958c;
-  --color-subtle: #6f6b64;
+  --color-muted: #c2bdb4;
+  --color-subtle: #9a958c;
   --color-accent: #d8d4cc;
   --color-accent-fg: #0b0c0e;
   --color-border: color-mix(in oklab, var(--color-fg) 12%, transparent);
@@ -30,13 +30,13 @@
   --radius-lg: 32px;
   --radius-xl: 999px;
 
-  --text-xs: 0.75rem;
-  --text-sm: 0.8125rem;
-  --text-base: 0.9375rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.5rem;
-  --text-2xl: 2rem;
-  --text-3xl: 2.75rem;
+  --text-xs: 0.875rem;
+  --text-sm: 1rem;
+  --text-base: 1.125rem;
+  --text-lg: 1.3125rem;
+  --text-xl: 1.75rem;
+  --text-2xl: 2.25rem;
+  --text-3xl: 3rem;
 }
 
 @layer base {
@@ -51,11 +51,26 @@
 
   body {
     font-family: var(--font-sans);
+    font-size: var(--text-base);
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: 0.01em;
     font-feature-settings: "ss01" 1;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
       env(safe-area-inset-left);
     touch-action: manipulation;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
   }
 
   button:not(:disabled),

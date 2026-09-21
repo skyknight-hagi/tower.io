@@ -44,7 +44,6 @@ import {
   typeMatchup,
   upgradeCost,
   vaultPayout,
-  WAVES_PER_CHAPTER,
 } from "./config";
 import { isBuildable, PATH_LEN, pointOnPath, setMap } from "./map";
 import { isMuted, sfx } from "./audio";
@@ -1270,7 +1269,7 @@ export class GameEngine {
     this.enemies = [];
     this.marks = [];
     this.inspectedEnemyId = null;
-    if (!this.endless && this.wave >= WAVES_PER_CHAPTER) {
+    if (!this.endless && this.wave >= this.waves.length) {
       this.cleared = Math.max(this.cleared, this.chapter + 1);
       this.unlocked = Math.max(this.unlocked, Math.min(CHAPTERS.length, this.chapter + 2));
       saveProgress(this.unlocked, this.cleared);
@@ -1286,7 +1285,7 @@ export class GameEngine {
   startWave() {
     if (this.screen !== "playing" || this.phase !== "prep") return;
     if (this.shopPrompt) return;
-    if (!this.endless && this.wave >= WAVES_PER_CHAPTER) return;
+    if (!this.endless && this.wave >= this.waves.length) return;
     this.wave += 1;
     const def = this.endless ? endlessWave(this.wave) : this.waves[this.wave - 1];
     if (!def) return;
@@ -1643,10 +1642,10 @@ export class GameEngine {
       maxLives: START_LIVES,
       healCost: healCost(this.heals),
       wave: this.wave,
-      totalWaves: this.endless ? 0 : WAVES_PER_CHAPTER,
+      totalWaves: this.endless ? 0 : this.waves.length,
       wavePreview: this.endless
         ? endlessWave(Math.max(1, this.wave + (this.phase === "prep" ? 1 : 0))).preview
-        : this.wave >= WAVES_PER_CHAPTER
+        : this.wave >= this.waves.length
           ? "Cleared"
           : (this.waves[this.wave]?.preview ?? this.waves[0]?.preview ?? ""),
       chapter: this.chapter,

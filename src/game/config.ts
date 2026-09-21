@@ -2,7 +2,7 @@ import type { DamageType, EnemyDef, EnemyType, Tower, TowerDef, TowerType, WaveD
 
 export const COLS = 14;
 export const ROWS = 10;
-export const START_GOLD = 170;
+export const START_GOLD = 190;
 export const START_LIVES = 20;
 export const SHOP_SIZE = 4;
 export const BENCH_SIZE = 8;
@@ -15,7 +15,7 @@ export const MAX_SHOW_STAR = 5;
 export const SLOT_BASE = 4;
 export const SLOT_MAX_UP = 4;
 export const SLOT_UP_COST = [0, 70, 130, 210, 320];
-export const WAVES_PER_CHAPTER = 10;
+export const WAVES_PER_CHAPTER = 25;
 export const UNLOCK_KEY = "seongru-unlock";
 export const ENDLESS_ID = 4;
 export const HEAL_BASE = 45;
@@ -261,69 +261,122 @@ export function enemyName(chapter: number, type: EnemyType): string {
 
 export function chapterWaves(chapter: number): WaveDef[] {
   const n = (t: EnemyType) => enemyName(chapter, t);
-  const q = (base: number) => Math.round(base * (1 + chapter * 0.16));
+  const q = (base: number) => Math.max(1, Math.round(base * (1 + chapter * 0.16)));
+  const w = (
+    parts: Array<{ type: EnemyType; count: number; interval: number; delay?: number }>,
+  ): WaveDef => {
+    const spawns = parts.map((s) => ({
+      type: s.type,
+      count: s.count,
+      interval: s.interval,
+      delay: s.delay ?? 0,
+    }));
+    const preview = spawns
+      .map((s) => (s.type === "boss" ? n(s.type) : `${n(s.type)} ${s.count}`))
+      .join(" · ");
+    return { preview, spawns };
+  };
+  const extraBoss = chapter >= 2;
   return [
-    { preview: `${n("infantry")} ${q(16)}`, spawns: [{ type: "infantry", count: q(16), interval: 0.52, delay: 0 }] },
-    {
-      preview: `${n("infantry")} ${q(16)} · ${n("swarm")} ${q(12)}`,
-      spawns: [
-        { type: "infantry", count: q(16), interval: 0.44, delay: 0 },
-        { type: "swarm", count: q(12), interval: 0.32, delay: 0.8 },
-      ],
-    },
-    { preview: `${n("armored")} ${q(14)}`, spawns: [{ type: "armored", count: q(14), interval: 0.6, delay: 0 }] },
-    {
-      preview: `${n("infantry")} ${q(18)} · ${n("spirit")} ${q(10)}`,
-      spawns: [
-        { type: "infantry", count: q(18), interval: 0.4, delay: 0 },
-        { type: "spirit", count: q(10), interval: 0.52, delay: 1.1 },
-      ],
-    },
-    {
-      preview: `${n("armored")} ${q(14)} · ${n("flyer")} ${q(10)}`,
-      spawns: [
-        { type: "armored", count: q(14), interval: 0.5, delay: 0 },
-        { type: "flyer", count: q(10), interval: 0.38, delay: 0.6 },
-      ],
-    },
-    {
-      preview: `${n("spirit")} ${q(16)} · ${n("infantry")} ${q(14)}`,
-      spawns: [
-        { type: "spirit", count: q(16), interval: 0.36, delay: 0 },
-        { type: "infantry", count: q(14), interval: 0.42, delay: 1 },
-      ],
-    },
-    {
-      preview: `${n("armored")} ${q(16)} · ${n("flyer")} ${q(12)}`,
-      spawns: [
-        { type: "armored", count: q(16), interval: 0.46, delay: 0 },
-        { type: "flyer", count: q(12), interval: 0.34, delay: 0.5 },
-      ],
-    },
-    {
-      preview: `${n("swarm")} ${q(28)} · ${n("flyer")} ${q(14)}`,
-      spawns: [
-        { type: "swarm", count: q(28), interval: 0.18, delay: 0 },
-        { type: "flyer", count: q(14), interval: 0.28, delay: 0.5 },
-      ],
-    },
-    {
-      preview: `${n("spirit")} ${q(16)} · ${n("flyer")} ${q(14)} · ${n("armored")} ${q(12)}`,
-      spawns: [
-        { type: "spirit", count: q(16), interval: 0.32, delay: 0 },
-        { type: "flyer", count: q(14), interval: 0.3, delay: 0.4 },
-        { type: "armored", count: q(12), interval: 0.42, delay: 0.8 },
-      ],
-    },
-    {
-      preview: `${n("boss")} · escort`,
-      spawns: [
-        { type: "boss", count: 1, interval: 1, delay: 0 },
-        { type: "armored", count: q(12), interval: 0.46, delay: 1 },
-        { type: "flyer", count: q(12), interval: 0.3, delay: 1.2 },
-        ...(chapter >= 2 ? [{ type: "boss" as const, count: 1, interval: 1, delay: 8 }] : []),
-      ],
-    },
+    w([{ type: "infantry", count: q(14), interval: 0.55 }]),
+    w([{ type: "infantry", count: q(18), interval: 0.48 }]),
+    w([{ type: "swarm", count: q(20), interval: 0.32 }]),
+    w([
+      { type: "infantry", count: q(14), interval: 0.46 },
+      { type: "swarm", count: q(12), interval: 0.3, delay: 0.7 },
+    ]),
+    w([{ type: "armored", count: q(10), interval: 0.62 }]),
+    w([
+      { type: "infantry", count: q(16), interval: 0.42 },
+      { type: "spirit", count: q(8), interval: 0.5, delay: 1 },
+    ]),
+    w([
+      { type: "swarm", count: q(16), interval: 0.28 },
+      { type: "flyer", count: q(8), interval: 0.4, delay: 0.6 },
+    ]),
+    w([
+      { type: "armored", count: q(10), interval: 0.55 },
+      { type: "infantry", count: q(12), interval: 0.42, delay: 0.8 },
+    ]),
+    w([
+      { type: "spirit", count: q(12), interval: 0.38 },
+      { type: "flyer", count: q(10), interval: 0.34, delay: 0.5 },
+    ]),
+    w([
+      { type: "boss", count: 1, interval: 1 },
+      { type: "infantry", count: q(10), interval: 0.5, delay: 1.2 },
+    ]),
+    w([
+      { type: "infantry", count: q(18), interval: 0.38 },
+      { type: "swarm", count: q(16), interval: 0.26, delay: 0.4 },
+    ]),
+    w([
+      { type: "armored", count: q(14), interval: 0.48 },
+      { type: "spirit", count: q(12), interval: 0.4, delay: 0.6 },
+    ]),
+    w([
+      { type: "flyer", count: q(16), interval: 0.3 },
+      { type: "swarm", count: q(20), interval: 0.22, delay: 0.4 },
+    ]),
+    w([
+      { type: "spirit", count: q(14), interval: 0.34 },
+      { type: "armored", count: q(12), interval: 0.46, delay: 0.5 },
+      { type: "infantry", count: q(12), interval: 0.4, delay: 0.9 },
+    ]),
+    w([
+      { type: "boss", count: 1, interval: 1 },
+      { type: "armored", count: q(10), interval: 0.5, delay: 1 },
+      { type: "flyer", count: q(10), interval: 0.34, delay: 1.2 },
+    ]),
+    w([
+      { type: "swarm", count: q(28), interval: 0.18 },
+      { type: "flyer", count: q(14), interval: 0.28, delay: 0.4 },
+    ]),
+    w([
+      { type: "armored", count: q(16), interval: 0.44 },
+      { type: "flyer", count: q(14), interval: 0.3, delay: 0.4 },
+    ]),
+    w([
+      { type: "spirit", count: q(18), interval: 0.32 },
+      { type: "infantry", count: q(16), interval: 0.36, delay: 0.5 },
+      { type: "flyer", count: q(10), interval: 0.32, delay: 0.8 },
+    ]),
+    w([
+      { type: "armored", count: q(16), interval: 0.42 },
+      { type: "swarm", count: q(22), interval: 0.2, delay: 0.3 },
+    ]),
+    w([
+      { type: "boss", count: 1, interval: 1 },
+      { type: "armored", count: q(14), interval: 0.42, delay: 0.8 },
+      { type: "flyer", count: q(14), interval: 0.28, delay: 1 },
+      ...(extraBoss ? [{ type: "boss" as const, count: 1, interval: 1, delay: 8 }] : []),
+    ]),
+    w([
+      { type: "spirit", count: q(18), interval: 0.3 },
+      { type: "flyer", count: q(16), interval: 0.26, delay: 0.4 },
+      { type: "swarm", count: q(18), interval: 0.2, delay: 0.6 },
+    ]),
+    w([
+      { type: "armored", count: q(20), interval: 0.4 },
+      { type: "infantry", count: q(18), interval: 0.34, delay: 0.5 },
+    ]),
+    w([
+      { type: "flyer", count: q(20), interval: 0.24 },
+      { type: "spirit", count: q(16), interval: 0.3, delay: 0.4 },
+      { type: "armored", count: q(12), interval: 0.44, delay: 0.8 },
+    ]),
+    w([
+      { type: "swarm", count: q(30), interval: 0.16 },
+      { type: "flyer", count: q(18), interval: 0.24, delay: 0.3 },
+      { type: "armored", count: q(14), interval: 0.4, delay: 0.7 },
+    ]),
+    w([
+      { type: "boss", count: 1, interval: 1 },
+      { type: "armored", count: q(16), interval: 0.4, delay: 0.6 },
+      { type: "flyer", count: q(16), interval: 0.26, delay: 0.8 },
+      { type: "spirit", count: q(12), interval: 0.32, delay: 1.2 },
+      ...(extraBoss ? [{ type: "boss" as const, count: 1, interval: 1, delay: 7 }] : []),
+    ]),
   ];
 }
 
@@ -350,22 +403,22 @@ export function endlessWave(wave: number): WaveDef {
 }
 
 export function hpScale(wave: number, chapter = 0, endless = false): number {
-  const w = 1 + (wave - 1) * 0.2 + Math.max(0, wave - 7) * 0.16;
-  const story = w * (1 + chapter * 0.58);
+  const w = 1 + (wave - 1) * 0.08 + Math.max(0, wave - 12) * 0.05;
+  const story = w * (1 + chapter * 0.5);
   return endless ? story * (1 + (wave - 1) * 0.07) : story;
 }
 
 export function speedScale(wave: number, chapter = 0, endless = false): number {
-  return 1 + (wave - 1) * 0.02 + chapter * 0.035 + (endless ? (wave - 1) * 0.008 : 0);
+  return 1 + (wave - 1) * 0.008 + chapter * 0.03 + (endless ? (wave - 1) * 0.008 : 0);
 }
 
 export function atkScale(wave: number, chapter = 0, endless = false): number {
-  const base = (1 + (wave - 1) * 0.18 + Math.max(0, wave - 6) * 0.12) * (1 + chapter * 0.42);
+  const base = (1 + (wave - 1) * 0.07 + Math.max(0, wave - 15) * 0.04) * (1 + chapter * 0.32);
   return endless ? base * (1 + (wave - 1) * 0.05) : base;
 }
 
 export function atkRateScale(wave: number, chapter = 0, endless = false): number {
-  return 1 + (wave - 1) * 0.045 + chapter * 0.07 + (endless ? (wave - 1) * 0.01 : 0);
+  return 1 + (wave - 1) * 0.018 + chapter * 0.05 + (endless ? (wave - 1) * 0.01 : 0);
 }
 
 export function healCost(heals: number): number {

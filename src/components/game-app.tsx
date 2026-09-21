@@ -33,6 +33,7 @@ import {
   TYPE_HINT,
   upgradeCost,
   vaultPayout,
+  WAVES_PER_CHAPTER,
 } from "@/game/config";
 import type { ChapterInfo, EnemyInspect, HudSnap, Tower, TowerType } from "@/game/types";
 import { cn } from "@/lib/utils";
@@ -170,7 +171,7 @@ export function GameApp() {
             onPointerMove={onMove}
           />
           {snap.screen === "playing" && snap.selectedInv != null && (
-            <p className="pointer-events-none absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full bg-surface/90 px-3 py-1.5 text-xs text-muted">
+            <p className="pointer-events-none absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full bg-surface/90 px-4 py-2 text-sm text-muted">
               Tap a clear tile off the path
             </p>
           )}
@@ -186,7 +187,7 @@ export function GameApp() {
 function Hud({ snap, engine }: { snap: HudSnap; engine: GameEngine }) {
   return (
     <header className="flex shrink-0 items-center gap-2 border-b border-border px-3 py-2 sm:gap-4 sm:px-4">
-      <div className="font-display text-lg tracking-tight sm:text-xl">Rampart</div>
+      <div className="font-display text-xl tracking-tight sm:text-2xl">Rampart</div>
       <div className="ml-auto flex items-center gap-2 sm:gap-3">
         <Stat icon={<Heart className="size-3.5 text-danger" />} value={`${snap.lives}`} label="Lives" />
         {snap.screen === "playing" && (
@@ -194,7 +195,7 @@ function Hud({ snap, engine }: { snap: HudSnap; engine: GameEngine }) {
             type="button"
             disabled={snap.lives >= snap.maxLives || snap.gold < snap.healCost}
             onClick={() => engine.heal()}
-            className="h-10 shrink-0 rounded-full border border-border bg-surface px-2 text-[11px] text-fg disabled:opacity-40"
+            className="h-11 shrink-0 rounded-full border border-border bg-surface px-3 text-sm text-fg disabled:opacity-40"
           >
             Heal {snap.healCost}G
           </button>
@@ -219,7 +220,7 @@ function Hud({ snap, engine }: { snap: HudSnap; engine: GameEngine }) {
         />
         <button
           type="button"
-          className="grid size-10 place-items-center rounded-full border border-border bg-surface text-fg"
+          className="grid size-11 place-items-center rounded-full border border-border bg-surface text-fg"
           onClick={() => {
             toggleMute();
             engine.refresh();
@@ -231,7 +232,7 @@ function Hud({ snap, engine }: { snap: HudSnap; engine: GameEngine }) {
         {snap.screen === "playing" && (
           <button
             type="button"
-            className="grid size-10 place-items-center rounded-full border border-border bg-surface"
+            className="grid size-11 place-items-center rounded-full border border-border bg-surface"
             onClick={() => engine.pause()}
             aria-label="Pause"
           >
@@ -248,8 +249,8 @@ function Stat({ icon, value, label }: { icon: import("react").ReactNode; value: 
     <div className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-2 py-1.5">
       {icon}
       <div className="leading-none">
-        <div className="font-medium tabular-nums text-sm">{value}</div>
-        <div className="text-[10px] text-subtle">{label}</div>
+        <div className="text-base font-medium tabular-nums">{value}</div>
+        <div className="text-xs text-subtle">{label}</div>
       </div>
     </div>
   );
@@ -265,13 +266,13 @@ function SidePanel({ snap, engine }: { snap: HudSnap; engine: GameEngine }) {
   const playing = snap.screen === "playing";
 
   return (
-    <aside className="flex max-h-[46vh] shrink-0 flex-col gap-3 overflow-y-auto border-t border-border bg-surface p-3 lg:max-h-none lg:w-[320px] lg:border-t-0 lg:border-l">
+    <aside className="flex max-h-[50vh] shrink-0 flex-col gap-3 overflow-y-auto border-t border-border bg-surface p-3 lg:max-h-none lg:w-96 lg:border-t-0 lg:border-l">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-xs text-subtle">
+          <div className="text-sm text-subtle">
             {snap.phase === "combat" ? "This wave" : "Next wave"}
           </div>
-          <div className="text-sm font-medium">{snap.wavePreview}</div>
+          <div className="text-base font-medium">{snap.wavePreview}</div>
         </div>
         <button
           type="button"
@@ -280,7 +281,7 @@ function SidePanel({ snap, engine }: { snap: HudSnap; engine: GameEngine }) {
             unlockAudio();
             engine.startWave();
           }}
-          className="h-11 rounded-3xl bg-accent px-4 text-sm font-medium text-accent-fg disabled:opacity-40"
+          className="h-12 rounded-3xl bg-accent px-4 text-base font-medium text-accent-fg disabled:opacity-40"
         >
           {snap.phase === "combat"
             ? `Left ${snap.enemiesLeft}`
@@ -290,14 +291,14 @@ function SidePanel({ snap, engine }: { snap: HudSnap; engine: GameEngine }) {
 
       <section>
         <div className="mb-2 flex items-center justify-between gap-2">
-          <h2 className="text-xs font-medium tracking-wide text-muted">Shop</h2>
+          <h2 className="text-sm font-medium tracking-wide text-muted">Shop</h2>
           <div className="flex items-center gap-1.5">
             <button
               type="button"
               disabled={!playing}
               onClick={() => engine.toggleShopLock()}
               className={cn(
-                "inline-flex h-9 items-center gap-1.5 rounded-full border px-2.5 text-xs disabled:opacity-40",
+                "inline-flex h-11 items-center gap-1.5 rounded-full border px-3 text-sm disabled:opacity-40",
                 snap.shopLocked
                   ? "border-accent bg-surface-2 text-fg"
                   : "border-border bg-bg text-muted",
@@ -312,14 +313,14 @@ function SidePanel({ snap, engine }: { snap: HudSnap; engine: GameEngine }) {
               type="button"
               disabled={!playing || snap.gold < snap.restockCost}
               onClick={() => engine.restock()}
-              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border px-2.5 text-xs text-fg disabled:opacity-40"
+              className="inline-flex h-11 items-center gap-1.5 rounded-full border border-border px-3 text-sm text-fg disabled:opacity-40"
             >
               <RotateCcw className="size-3.5" />
               Restock {snap.restockCost}
             </button>
           </div>
         </div>
-        <p className="mb-2 text-[11px] leading-snug text-subtle">
+        <p className="mb-2 text-sm leading-snug text-subtle">
           After each wave we ask whether to lock the shop. Lock keeps it; otherwise it restocks.
         </p>
         <div className="grid grid-cols-4 gap-1.5">
@@ -337,25 +338,25 @@ function SidePanel({ snap, engine }: { snap: HudSnap; engine: GameEngine }) {
 
       <section>
         <div className="mb-2 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-muted">
-            <Package className="size-3.5" />
+          <div className="flex items-center gap-1.5 text-sm font-medium tracking-wide text-muted">
+            <Package className="size-4" />
             Bench {snap.inventory.length}/8
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-[11px] tabular-nums text-subtle">
+            <span className="text-sm tabular-nums text-subtle">
               Placed {snap.placedCount}/{snap.slotCap}
             </span>
             <button
               type="button"
               disabled={!playing || snap.slotCost == null || snap.gold < (snap.slotCost ?? 0)}
               onClick={() => engine.expandSlots()}
-              className="inline-flex h-8 items-center rounded-full border border-border px-2 text-[11px] disabled:opacity-40"
+              className="inline-flex h-10 items-center rounded-full border border-border px-3 text-sm disabled:opacity-40"
             >
               {snap.slotCost == null ? "Max slots" : `+1 slot · ${snap.slotCost}G`}
             </button>
           </div>
         </div>
-        <div className="grid grid-cols-8 gap-1.5">
+        <div className="grid grid-cols-4 gap-2">
           {Array.from({ length: 8 }).map((_, i) => {
             const t = snap.inventory[i];
             return (
@@ -365,7 +366,7 @@ function SidePanel({ snap, engine }: { snap: HudSnap; engine: GameEngine }) {
                 disabled={!t || !playing}
                 onClick={() => t && engine.selectInv(t.id)}
                 className={cn(
-                  "aspect-square rounded-full border text-[10px] font-medium",
+                  "min-h-14 rounded-2xl border text-sm font-medium",
                   t
                     ? snap.selectedInv === t.id
                       ? "border-accent bg-surface-2 text-fg"
@@ -387,8 +388,8 @@ function SidePanel({ snap, engine }: { snap: HudSnap; engine: GameEngine }) {
 
       {snap.merges.length > 0 && (
         <section className="rounded-3xl border border-border bg-bg p-2">
-          <div className="mb-1.5 flex items-center gap-1.5 text-xs text-muted">
-            <Combine className="size-3.5" />
+          <div className="mb-1.5 flex items-center gap-1.5 text-sm text-muted">
+            <Combine className="size-4" />
             Ready to merge
           </div>
           <div className="flex flex-col gap-1">
@@ -398,7 +399,7 @@ function SidePanel({ snap, engine }: { snap: HudSnap; engine: GameEngine }) {
                 type="button"
                 disabled={!playing}
                 onClick={() => engine.merge(m.type, m.star)}
-                className="flex h-10 items-center justify-between rounded-full bg-surface-2 px-2.5 text-xs"
+                className="flex h-12 items-center justify-between rounded-full bg-surface-2 px-3 text-sm"
               >
                 <span>
                   {TOWERS[m.type].name} {m.star}★ ×{m.count}
@@ -428,7 +429,7 @@ function ShopSlotCard({
   onBuy: () => void;
 }) {
   if (!type) {
-    return <div className="h-[92px] rounded-3xl border border-dashed border-border bg-bg/50" />;
+    return <div className="h-28 rounded-3xl border border-dashed border-border bg-bg/50" />;
   }
   const def = TOWERS[type];
   const can = gold >= def.cost && !disabled;
@@ -437,13 +438,13 @@ function ShopSlotCard({
       type="button"
       disabled={!can}
       onClick={onBuy}
-      className="flex h-[92px] flex-col items-start justify-between rounded-3xl border border-border bg-bg p-2 text-left disabled:opacity-40"
+      className="flex h-28 flex-col items-start justify-between rounded-3xl border border-border bg-bg p-2.5 text-left disabled:opacity-40"
     >
-      <span className="text-[11px] font-medium" style={{ color: typeColor(type) }}>
+      <span className="text-sm font-medium" style={{ color: typeColor(type) }}>
         {def.name}
       </span>
-      <span className="text-[10px] leading-tight text-subtle">{def.kind}</span>
-      <span className="text-xs font-medium tabular-nums">{def.cost}</span>
+      <span className="text-xs leading-tight text-subtle">{def.kind}</span>
+      <span className="text-sm font-medium tabular-nums">{def.cost}</span>
     </button>
   );
 }
@@ -452,9 +453,9 @@ function EnemyPanel({ info }: { info: EnemyInspect }) {
   const ratio = Math.max(0, info.hp / info.maxHp);
   return (
     <section className="rounded-3xl border border-border bg-bg p-3">
-      <div className="text-sm font-medium">{info.name}</div>
+      <div className="text-base font-medium">{info.name}</div>
       <div className="mt-2">
-        <div className="mb-1 flex items-center justify-between text-[11px] text-muted">
+        <div className="mb-1 flex items-center justify-between text-sm text-muted">
           <span>HP</span>
           <span className="tabular-nums text-fg">
             {Math.ceil(info.hp)} / {info.maxHp}
@@ -467,21 +468,21 @@ function EnemyPanel({ info }: { info: EnemyInspect }) {
           />
         </div>
       </div>
-      <div className="mt-3 grid grid-cols-2 gap-1.5 text-xs">
-        <div className="rounded-full border border-border bg-surface p-2">
-          <div className="text-[10px] text-muted">Attack</div>
+      <div className="mt-3 grid grid-cols-2 gap-1.5 text-sm">
+        <div className="rounded-2xl border border-border bg-surface p-2.5">
+          <div className="text-xs text-muted">Attack</div>
           <div className="mt-0.5 font-medium tabular-nums">{info.atk}</div>
         </div>
-        <div className="rounded-full border border-border bg-surface p-2">
-          <div className="text-[10px] text-muted">Rate</div>
+        <div className="rounded-2xl border border-border bg-surface p-2.5">
+          <div className="text-xs text-muted">Rate</div>
           <div className="mt-0.5 font-medium tabular-nums">{info.atkRate.toFixed(2)}/s</div>
         </div>
-        <div className="rounded-full border border-border bg-surface p-2">
-          <div className="text-[10px] text-good">2x damage</div>
+        <div className="rounded-2xl border border-border bg-surface p-2.5">
+          <div className="text-xs text-good">2x damage</div>
           <div className="mt-0.5 font-medium">{info.weak.length ? info.weak.join(" · ") : "None"}</div>
         </div>
-        <div className="rounded-full border border-border bg-surface p-2">
-          <div className="text-[10px] text-danger">Half</div>
+        <div className="rounded-2xl border border-border bg-surface p-2.5">
+          <div className="text-xs text-danger">Half</div>
           <div className="mt-0.5 font-medium">{info.resist.length ? info.resist.join(" · ") : "None"}</div>
         </div>
       </div>
@@ -512,26 +513,26 @@ function Inspector({
     <section className="rounded-3xl border border-border bg-bg p-3">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <div className="text-sm font-medium">
+          <div className="text-base font-medium">
             {def.name} · {tower.star}★
           </div>
-          <div className="text-xs text-muted">
+          <div className="text-sm text-muted">
             {DAMAGE_LABEL[def.damageType]} · {TYPE_HINT[tower.type]}
           </div>
         </div>
       </div>
-      <p className="mt-2 text-xs leading-relaxed text-subtle">{def.desc}</p>
-      <div className="mt-2 grid grid-cols-2 gap-1.5 text-xs">
-        <div className="rounded-full border border-border bg-surface p-2">
-          <div className="text-[10px] text-subtle">
+      <p className="mt-2 text-sm leading-relaxed text-subtle">{def.desc}</p>
+      <div className="mt-2 grid grid-cols-2 gap-1.5 text-sm">
+        <div className="rounded-2xl border border-border bg-surface p-2.5">
+          <div className="text-xs text-subtle">
             {tower.type === "vault" ? "Payout" : tower.type === "barracks" ? "Soldier dmg" : "Damage"}
           </div>
           <div className="mt-0.5 font-medium tabular-nums">
             {tower.type === "vault" ? `+${vaultPayout(tower)}G` : Math.round(dmg)}
           </div>
         </div>
-        <div className="rounded-full border border-border bg-surface p-2">
-          <div className="text-[10px] text-subtle">
+        <div className="rounded-2xl border border-border bg-surface p-2.5">
+          <div className="text-xs text-subtle">
             {tower.type === "vault" ? "Interval" : tower.type === "barracks" ? "Cap" : "Range"}
           </div>
           <div className="mt-0.5 font-medium tabular-nums">
@@ -569,7 +570,7 @@ function Inspector({
             type="button"
             disabled={!playing}
             onClick={() => engine.pickup(tower.id)}
-            className="h-10 flex-1 rounded-full border border-border text-xs"
+            className="h-11 flex-1 rounded-full border border-border text-sm"
           >
             Pick up
           </button>
@@ -578,7 +579,7 @@ function Inspector({
           type="button"
           disabled={!playing}
           onClick={() => engine.sell(tower.id)}
-          className="h-10 flex-1 rounded-full border border-border text-xs text-danger"
+          className="h-11 flex-1 rounded-full border border-border text-sm text-danger"
         >
           Sell {sell}
         </button>
@@ -611,14 +612,14 @@ function UpgradeBtn({
       type="button"
       disabled={!can}
       onClick={onClick}
-      className="flex h-[72px] flex-col items-start justify-between rounded-full border border-border bg-surface p-2 text-left disabled:opacity-40"
+      className="flex min-h-20 flex-col items-start justify-between rounded-2xl border border-border bg-surface p-2.5 text-left disabled:opacity-40"
     >
-      <span className="inline-flex items-center gap-1 text-[11px] text-muted">
-        <ArrowUp className="size-3" />
+      <span className="inline-flex items-center gap-1 text-sm text-muted">
+        <ArrowUp className="size-3.5" />
         {label} {level}/3
       </span>
-      <span className="text-xs tabular-nums">×{mul.toFixed(2)}</span>
-      <span className="text-[11px] text-subtle">{maxed ? "Max" : `${cost}G`}</span>
+      <span className="text-sm tabular-nums">×{mul.toFixed(2)}</span>
+      <span className="text-sm text-subtle">{maxed ? "Max" : `${cost}G`}</span>
     </button>
   );
 }
@@ -629,12 +630,12 @@ function ScreenOverlay({ snap, engine }: { snap: HudSnap; engine: GameEngine }) 
     return (
       <div className="absolute inset-0 z-20 flex items-center justify-center bg-bg p-6">
         <div className="w-full max-w-sm">
-          <p className="text-xs tracking-[0.18em] text-muted">TOWER DEFENSE</p>
+          <p className="text-sm tracking-[0.18em] text-muted">TOWER DEFENSE</p>
           <h1 className="font-display mt-1 text-4xl leading-none">Rampart</h1>
-          <p className="mt-2 text-sm text-muted">{snap.loadLabel}</p>
+          <p className="mt-2 text-base text-muted">{snap.loadLabel}</p>
           <div className="mt-8">
             <div className="mb-2 flex items-baseline justify-between">
-              <span className="text-xs text-subtle">Loading</span>
+              <span className="text-sm text-subtle">Loading</span>
               <span className="font-display text-2xl tabular-nums">{pct}%</span>
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-surface-2">
@@ -651,12 +652,15 @@ function ScreenOverlay({ snap, engine }: { snap: HudSnap; engine: GameEngine }) 
 
   if (snap.screen === "chapters") {
     return (
-      <div className="absolute inset-0 z-20 flex items-center justify-center bg-bg/85 p-4 backdrop-blur-[2px]">
-        <div className="w-full max-w-lg max-h-[min(92dvh,44rem)] overflow-y-auto rounded-3xl border border-border bg-surface p-5 shadow-lg sm:p-6">
-          <p className="text-xs tracking-[0.18em] text-muted">TOWER DEFENSE</p>
-          <h1 className="font-display mt-1 text-4xl leading-none">Rampart</h1>
-          <p className="mt-2 text-sm text-muted">Each chapter is 10 stages. Clear all four to unlock Endless.</p>
-          <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <div className="absolute inset-0 z-20 overflow-y-auto bg-bg/85 p-3 backdrop-blur-[2px]">
+        <div className="flex min-h-full items-center justify-center py-3">
+        <div className="w-full max-w-xl rounded-3xl border border-border bg-surface px-4 py-5 shadow-lg sm:px-5 sm:py-6">
+          <p className="text-sm tracking-[0.18em] text-muted">TOWER DEFENSE</p>
+          <h1 className="font-display mt-1 text-3xl leading-none sm:text-4xl">Rampart</h1>
+          <p className="mt-1.5 text-base text-muted">
+            Each chapter is {WAVES_PER_CHAPTER} stages. Clear all four to unlock Endless.
+          </p>
+          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
             {snap.chapters.map((ch) => (
               <ChapterCard
                 key={ch.id}
@@ -678,24 +682,25 @@ function ScreenOverlay({ snap, engine }: { snap: HudSnap; engine: GameEngine }) 
               engine.startGame(ENDLESS_ID);
             }}
             className={cn(
-              "mt-2 flex min-h-20 w-full flex-col items-start rounded-3xl border p-3 text-left",
+              "mt-2 flex min-h-16 w-full flex-col items-start rounded-3xl border p-3 text-left",
               snap.endlessUnlocked ? "border-border bg-bg" : "border-border/70 bg-bg/50 opacity-50",
             )}
           >
             <div className="flex w-full items-center justify-between gap-2">
-              <span className="text-[11px] text-subtle">Endless</span>
+              <span className="text-sm text-subtle">Endless</span>
               {snap.endlessUnlocked ? (
-                <span className="text-[11px] text-good">Open</span>
+                <span className="text-sm text-good">Open</span>
               ) : (
-                <Lock className="size-3.5 text-subtle" />
+                <Lock className="size-4 text-subtle" />
               )}
             </div>
-            <div className="mt-1 font-display text-xl leading-none">Endless Watch</div>
-            <div className="mt-1 text-xs text-muted">
+            <div className="mt-1 font-display text-2xl leading-none">Endless Watch</div>
+            <div className="mt-1 text-sm text-muted">
               {snap.endlessUnlocked ? "Foes grow in number and strength each stage." : "Clear every chapter to unlock."}
             </div>
           </button>
           <TypeChart />
+        </div>
         </div>
       </div>
     );
@@ -705,18 +710,18 @@ function ScreenOverlay({ snap, engine }: { snap: HudSnap; engine: GameEngine }) 
     return (
       <div className="absolute inset-0 z-20 flex items-center justify-center bg-bg/70 p-4">
         <div className="w-full max-w-sm rounded-3xl border border-border bg-surface p-6">
-          <h2 className="font-display text-2xl">Paused</h2>
+          <h2 className="font-display text-3xl">Paused</h2>
           <div className="mt-5 flex flex-col gap-2">
             <button
               type="button"
-              className="h-12 rounded-3xl bg-accent font-medium text-accent-fg"
+              className="h-14 rounded-3xl bg-accent text-base font-medium text-accent-fg"
               onClick={() => engine.resume()}
             >
               Resume
             </button>
             <button
               type="button"
-              className="h-12 rounded-3xl border border-border"
+              className="h-14 rounded-3xl border border-border text-base"
               onClick={() => {
                 unlockAudio();
                 engine.startGame(snap.endless ? ENDLESS_ID : snap.chapter);
@@ -726,7 +731,7 @@ function ScreenOverlay({ snap, engine }: { snap: HudSnap; engine: GameEngine }) 
             </button>
             <button
               type="button"
-              className="h-12 rounded-3xl border border-border"
+              className="h-14 rounded-3xl border border-border text-base"
               onClick={() => engine.openChapters()}
             >
               Chapters
@@ -742,22 +747,22 @@ function ScreenOverlay({ snap, engine }: { snap: HudSnap; engine: GameEngine }) 
     return (
       <div className="absolute inset-0 z-20 flex items-center justify-center bg-bg/80 p-4">
         <div className="w-full max-w-sm rounded-3xl border border-border bg-surface p-6">
-          <p className="text-xs tracking-[0.18em] text-muted">{won ? "CLEAR" : "FALLEN"}</p>
+          <p className="text-sm tracking-[0.18em] text-muted">{won ? "CLEAR" : "FALLEN"}</p>
           <h2 className="font-display mt-1 text-3xl">{won ? "The keep holds" : "The gate fell"}</h2>
-          <p className="mt-2 text-sm text-muted">
+          <p className="mt-2 text-base text-muted">
             {won
               ? `${snap.chapterName} · held ${snap.endless ? `${snap.wave} waves` : `${snap.totalWaves} stages`}.`
               : `${snap.chapterName} · out of lives on stage ${snap.wave}.`}
           </p>
           {won && snap.endlessUnlocked && snap.chapter === 3 && (
-            <p className="mt-1 text-sm text-good">Endless mode is unlocked.</p>
+            <p className="mt-1 text-base text-good">Endless mode is unlocked.</p>
           )}
-          <p className="mt-1 text-sm text-subtle">Gold left {snap.gold}</p>
+          <p className="mt-1 text-base text-subtle">Gold left {snap.gold}</p>
           <div className="mt-5 flex flex-col gap-2">
             {won && snap.endlessUnlocked && snap.chapter === 3 && (
               <button
                 type="button"
-                className="h-12 w-full rounded-3xl bg-accent font-medium text-accent-fg"
+                className="h-14 w-full rounded-3xl bg-accent text-base font-medium text-accent-fg"
                 onClick={() => {
                   unlockAudio();
                   engine.startGame(ENDLESS_ID);
@@ -769,7 +774,7 @@ function ScreenOverlay({ snap, engine }: { snap: HudSnap; engine: GameEngine }) 
             {won && snap.chapter + 1 < snap.chapters.length && snap.chapters[snap.chapter + 1]?.unlocked && (
               <button
                 type="button"
-                className="h-12 w-full rounded-3xl bg-accent font-medium text-accent-fg"
+                className="h-14 w-full rounded-3xl bg-accent text-base font-medium text-accent-fg"
                 onClick={() => {
                   unlockAudio();
                   engine.startGame(snap.chapter + 1);
@@ -781,7 +786,7 @@ function ScreenOverlay({ snap, engine }: { snap: HudSnap; engine: GameEngine }) 
             <button
               type="button"
               className={cn(
-                "h-12 w-full rounded-3xl font-medium",
+                "h-14 w-full rounded-3xl text-base font-medium",
                 (won && snap.chapter + 1 < snap.chapters.length && snap.chapters[snap.chapter + 1]?.unlocked) ||
                   (won && snap.endlessUnlocked && snap.chapter === 3)
                   ? "border border-border"
@@ -818,22 +823,24 @@ function ChapterCard({
       disabled={!chapter.unlocked}
       onClick={onSelect}
       className={cn(
-        "flex min-h-24 flex-col items-start rounded-3xl border p-3 text-left",
+        "flex min-h-20 flex-col items-start rounded-3xl border p-3 text-left",
         chapter.unlocked ? "border-border bg-bg" : "border-border/70 bg-bg/50 opacity-50",
       )}
     >
       <div className="flex w-full items-center justify-between gap-2">
-        <span className="text-[11px] text-subtle">Ch. {chapter.id + 1} · 10 stages</span>
+        <span className="text-sm text-subtle">
+          Ch. {chapter.id + 1} · {WAVES_PER_CHAPTER} stages
+        </span>
         {!chapter.unlocked ? (
-          <Lock className="size-3.5 text-subtle" />
+          <Lock className="size-4 text-subtle" />
         ) : chapter.cleared ? (
-          <span className="text-[11px] text-good">Cleared</span>
+          <span className="text-sm text-good">Cleared</span>
         ) : (
-          <span className="text-[11px] text-muted">Open</span>
+          <span className="text-sm text-muted">Open</span>
         )}
       </div>
-      <div className="mt-1 font-display text-xl leading-none">{chapter.name}</div>
-      <div className="mt-1 text-xs text-muted">{chapter.subtitle}</div>
+      <div className="mt-1 font-display text-2xl leading-none">{chapter.name}</div>
+      <div className="mt-1 text-sm text-muted">{chapter.subtitle}</div>
       {skins && (
         <div className="mt-3 flex gap-1">
           {(Object.keys(skins) as Array<keyof typeof skins>).map((k) => (
@@ -859,8 +866,8 @@ function TypeChart() {
     ["Warden", "½", "2x", "—", "—"],
   ];
   return (
-    <div className="mt-5 overflow-hidden rounded-3xl border border-border">
-      <table className="w-full text-center text-[11px]">
+    <div className="mt-3 overflow-hidden rounded-3xl border border-border">
+      <table className="w-full text-center text-xs sm:text-sm">
         <thead className="bg-bg text-subtle">
           <tr>
             <th className="px-2 py-1.5 font-medium">Foe</th>
@@ -898,20 +905,20 @@ function ShopLockPrompt({ engine }: { engine: GameEngine }) {
   return (
     <div className="absolute inset-0 z-20 flex items-center justify-center bg-bg/70 p-4">
       <div className="w-full max-w-sm rounded-3xl border border-border bg-surface p-6">
-        <h2 className="font-display text-2xl">Shop</h2>
-        <p className="mt-2 text-sm text-muted">Lock the shop?</p>
-        <p className="mt-1 text-xs text-subtle">Lock keeps this stock. Otherwise it restocks.</p>
+        <h2 className="font-display text-3xl">Shop</h2>
+        <p className="mt-2 text-base text-muted">Lock the shop?</p>
+        <p className="mt-1 text-sm text-subtle">Lock keeps this stock. Otherwise it restocks.</p>
         <div className="mt-5 flex flex-col gap-2">
           <button
             type="button"
-            className="h-12 rounded-3xl bg-accent font-medium text-accent-fg"
+            className="h-14 rounded-3xl bg-accent text-base font-medium text-accent-fg"
             onClick={() => engine.answerShopLock(true)}
           >
             Lock
           </button>
           <button
             type="button"
-            className="h-12 rounded-3xl border border-border"
+            className="h-14 rounded-3xl border border-border text-base"
             onClick={() => engine.answerShopLock(false)}
           >
             Restock

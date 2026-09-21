@@ -605,13 +605,13 @@ function drawInspectCard(
   const resist = m.resist.map((d) => DAMAGE_LABEL[d]).join(" ") || "none";
   const hp = `${Math.max(0, Math.ceil(e.hp))}/${e.maxHp}`;
   const lines = [`${hp}`, `2x ${weak}`, `½ ${resist}`];
-  const font = `700 ${Math.max(11, cell * 0.2)}px Nunito, sans-serif`;
+  const font = `700 ${Math.max(15, cell * 0.28)}px Nunito, sans-serif`;
   ctx.font = font;
   ctx.textAlign = "left";
   let tw = 0;
   for (const line of lines) tw = Math.max(tw, ctx.measureText(line).width);
-  const pad = 8;
-  const lineH = Math.max(14, cell * 0.26);
+  const pad = 10;
+  const lineH = Math.max(18, cell * 0.34);
   const boxW = tw + pad * 2;
   const boxH = lineH * lines.length + pad * 1.4;
   let bx = x + r + 8;
@@ -806,7 +806,7 @@ function drawFloater(
 ) {
   ctx.globalAlpha = Math.max(0, f.life / f.max);
   ctx.fillStyle = f.color;
-  ctx.font = `600 ${Math.max(10, cell * 0.22)}px "IBM Plex Sans KR", sans-serif`;
+  ctx.font = `700 ${Math.max(14, cell * 0.3)}px Nunito, sans-serif`;
   ctx.textAlign = "center";
   ctx.fillText(f.text, wx(f.x, cell), wy(f.y, cell));
   ctx.globalAlpha = 1;
